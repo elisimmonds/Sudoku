@@ -8,17 +8,23 @@
 #include <string.h>
 #include <stdbool.h>
 #include <fcntl.h>
+#include <pthread.h>
 
 #define length 9
 #define correctSize 45
 
 void printBoard(char board[][length]);
-void rowContainsDigits(char board[][length], int row);
-void colContainsDigits(char board[][length], int col);
+void rowContainsDigits(char board[][length]);
+void colContainsDigits(char board[][length]);
 void subGridContainsDigits(char board[][length], int row, int col);
 
+typedef struct {
+    int row, col;
+    char ( * sudokuBoard)[length];
+} param;
+
 int main (int argc, char * argv[]) {
-    char sudokuBoard[9][9];
+    char sudokuBoard[length][length];
     
     FILE *ifp;
     char *mode = "r";
@@ -33,7 +39,6 @@ int main (int argc, char * argv[]) {
     int row, col = 0;
     while (c != EOF) {
         if (c != ' ') {
-//            printf("%c (%i, %i)\n", c, row, col);
             sudokuBoard[row][col] = c;
             col++;
         }
@@ -45,40 +50,61 @@ int main (int argc, char * argv[]) {
     }
     printBoard(sudokuBoard);
     
-    for (int i = 0; i < length; i++) {
-        rowContainsDigits(sudokuBoard, i);
-        colContainsDigits(sudokuBoard, i);
-    }
-    for (int j = 0; j < 3; j++) {
-        for (int k = 0; k < 3; k++) {
-            subGridContainsDigits(sudokuBoard, j, k);
+//    rowContainsDigits(sudokuBoard);
+//    colContainsDigits(sudokuBoard);
+    
+    pthread_t rows, cols;
+
+    pthread_create(&rows, NULL, rowContainsDigits, (void *) sudokuBoard);
+//    pthread_create(&cols, NULL, colContainsDigits, (void *) colStruct);
+
+    void * returnRows;
+    void * returnCols;
+    
+    pthread_join(rows, returnRows);
+//    pthread_join(cols, returnCols);
+    
+    
+    
+//    if ((int) returnRows == 1 && (int) returnCols == 1) {
+//    printf("rows return %i \n", (int) returnRows);
+//    if ((int) returnRows == 1) {
+//    if ((int) returnCols == 1) {
+//        printf("Sudoku is valid\n");
+//    } else {
+//        printf("Sudoku is invalid\n");
+//    }
+    
+
+}
+
+void rowContainsDigits(char board[][length]) {
+//    char board[length][length] = param->sudokuBoard;
+//    param * board = param;
+    for (int j = 0; j < length; j++) {
+        int sum = 0;
+        for (int i = 0; i < length; i++) {
+            sum += board[j][i] - '0';
+        }
+        if (sum != correctSize) {
+            printf("\nRow %i doesn't have the required values.\n", j);
+//            return (void *) 0;
         }
     }
-    
-    
+//    return (void *) 1;
 }
 
-void rowContainsDigits(char board[][length], int row) {
-    int sum = 0;
-    for (int i = 0; i < length; i++) {
-//        printf(" %c ", board[row][i]);
-        sum += board[row][i] - '0';
-    }
-//    printf(" sum: %i    correct: %i \n", sum, correctSize);
-    if (sum != correctSize) {
-        printf("\nRow %i doesn't have the required values.\n", row);
-    }
-}
-
-void colContainsDigits(char board[][length], int col) {
-    int sum = 0;
-    for (int i = 0; i < length; i++) {
-//        printf(" %c ", board[i][col]);
-        sum += board[i][col] - '0';
-    }
-//    printf(" sum: %i    correct: %i \n", sum, correctSize);
-    if (sum != correctSize) {
-        printf("\nColumn %i doesn't have the required values.\n", col);
+void colContainsDigits(char board[][length]) {
+    for (int j = 0; j < length; j++) {
+        int sum = 0;
+        for (int i = 0; i < length; i++) {
+            //        printf(" %c ", board[i][col]);
+            sum += board[i][j] - '0';
+        }
+        //    printf(" sum: %i    correct: %i \n", sum, correctSize);
+        if (sum != correctSize) {
+            printf("\nColumn %i doesn't have the required values.\n", j);
+        }
     }
 }
 
@@ -88,12 +114,9 @@ void subGridContainsDigits(char board[][length], int row, int col) {
     int tempCol = col * 3;
     for (int r = tempRow; r < tempRow + 3; r++) {
         for (int c = tempCol; c < tempCol + 3; c++) {
-//            printf(" %c ", board[r][c]);
             sum += board[r][c] - '0';
         }
-//        printf("\n");
     }
-//    printf(" sum: %i    correct: %i \n", sum, correctSize);
     if (sum != correctSize) {
         printf("\nSubgrid[%i][%i] doesn't have the required values. Sum = %i \n", row, col, sum);
     }
