@@ -50,37 +50,23 @@ int main (int argc, char * argv[]) {
     }
     printBoard(sudokuBoard);
     
-//    rowContainsDigits(sudokuBoard);
-//    colContainsDigits(sudokuBoard);
-    
-    pthread_t rows, cols;
+    pthread_t rows, cols, subGrid;
 
     pthread_create(&rows, NULL, rowContainsDigits, (void *) sudokuBoard);
-//    pthread_create(&cols, NULL, colContainsDigits, (void *) colStruct);
+    pthread_create(&cols, NULL, colContainsDigits, (void *) sudokuBoard);
+    pthread_create(&subGrid, NULL, subGridContainsDigits, (void *) sudokuBoard);
 
-    void * returnRows;
-    void * returnCols;
+//    void * returnRows;
+//    void * returnCols;
     
-    pthread_join(rows, returnRows);
-//    pthread_join(cols, returnCols);
+    pthread_join(rows, NULL);
+    pthread_join(cols, NULL);
     
     
-    
-//    if ((int) returnRows == 1 && (int) returnCols == 1) {
-//    printf("rows return %i \n", (int) returnRows);
-//    if ((int) returnRows == 1) {
-//    if ((int) returnCols == 1) {
-//        printf("Sudoku is valid\n");
-//    } else {
-//        printf("Sudoku is invalid\n");
-//    }
-    
-
 }
 
 void rowContainsDigits(char board[][length]) {
-//    char board[length][length] = param->sudokuBoard;
-//    param * board = param;
+    // checks each row for correct numbers
     for (int j = 0; j < length; j++) {
         int sum = 0;
         for (int i = 0; i < length; i++) {
@@ -88,20 +74,17 @@ void rowContainsDigits(char board[][length]) {
         }
         if (sum != correctSize) {
             printf("\nRow %i doesn't have the required values.\n", j);
-//            return (void *) 0;
         }
     }
-//    return (void *) 1;
 }
 
 void colContainsDigits(char board[][length]) {
+    // checks each column for the correct values
     for (int j = 0; j < length; j++) {
         int sum = 0;
         for (int i = 0; i < length; i++) {
-            //        printf(" %c ", board[i][col]);
             sum += board[i][j] - '0';
         }
-        //    printf(" sum: %i    correct: %i \n", sum, correctSize);
         if (sum != correctSize) {
             printf("\nColumn %i doesn't have the required values.\n", j);
         }
@@ -109,6 +92,17 @@ void colContainsDigits(char board[][length]) {
 }
 
 void subGridContainsDigits(char board[][length], int row, int col) {
+    /*
+     Checks each subgrid referred to as the following:
+      0  1  2
+      ________
+    0|  |  |  |
+     |--|--|--|
+    1|  |  |  |
+     |--|--|--|
+    2|  |  |  |
+      --------
+     */
     int sum = 0;
     int tempRow = row * 3;
     int tempCol = col * 3;
