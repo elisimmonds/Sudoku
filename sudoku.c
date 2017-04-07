@@ -1,23 +1,14 @@
-// Eli Simmonds
+// Eli Simmonds & Ryan Graves
 // Homework 3
 // Sudoku.c
 
 #include <stdio.h>
 #include <stdlib.h>
-#include <sys/types.h>
-#include <string.h>
-#include <stdbool.h>
-#include <fcntl.h>
 #include <pthread.h>
 #include <ctype.h>
-//#include <sys/wait.h>
 
 #define length 9
-#define correctSize 45
 
-pthread_mutex_t rowmutex;
-pthread_mutex_t colmutex;
-pthread_mutex_t submutex;
 
 void printBoard(char * board);
 void *rowContainsDigits(char * board);
@@ -27,12 +18,7 @@ void *subGridContainsDigits(char * board);
 char * sudokuBoard;
 
 int main (int argc, char * argv[]) {
-    //char sudokuBoard[length][length];
     sudokuBoard = (char *)malloc(length * length * sizeof(char));
-
-    pthread_mutex_init(&rowmutex, NULL);
-    pthread_mutex_init(&colmutex, NULL);
-    pthread_mutex_init(&submutex, NULL);
 
     FILE *ifp;
     char *mode = "r";
@@ -47,7 +33,6 @@ int main (int argc, char * argv[]) {
     int col = 0;
     while (c != EOF) {
         if (!isspace(c)) {
-            //sudokuBoard[row][col] = c;
             *(sudokuBoard + row*length + col) = c;
             col++;
         }
@@ -60,8 +45,8 @@ int main (int argc, char * argv[]) {
             col = 0;
         }
     }
-
     printBoard(sudokuBoard);
+
 
     pthread_t rows[9];
     pthread_t cols[9];
@@ -138,75 +123,49 @@ int main (int argc, char * argv[]) {
 
 void *rowContainsDigits(char * board) {
     // checks A row for correct numbers
-//    printf("Checking row...\n");
     int *inRow = (int *)malloc(length * sizeof(int));
-    pthread_mutex_lock(&rowmutex);
     for (int i = 0; i < length; i++)
         *(inRow + i) = 0;
     for (int j = 0; j < length; j++) {
         if (*(inRow + *(board + j) - 1) == 1) {
-            pthread_mutex_unlock(&rowmutex);
             return (void *) 0;
         }
         if (*(inRow + *(board + j) - 1) == 0) {
             *(inRow + *(board + j) - 1) = 1;
         }
     }
-    pthread_mutex_unlock(&rowmutex);
     return (void *) 1;
 }
 
 void *colContainsDigits(char * board) {
-//    printf("Checking Column...\n");
     // checks A column for correct numbers
     int *inCol = (int *)malloc(length * sizeof(int));
-    pthread_mutex_lock(&colmutex);
     for (int i = 0; i < length; i++)
         *(inCol + i) = 0;
     for (int j = 0; j < length; j++) {
         if (*(inCol + *(board + j * length) - 1) == 1) {
-            pthread_mutex_unlock(&colmutex);
             return (void *) 0;
         }
         if (*(inCol + *(board + j * length) - 1) == 0)
             *(inCol + *(board + j * length) - 1) = 1;
     }
-    pthread_mutex_unlock(&colmutex);
     return (void *) 1;
 }
 
 void *subGridContainsDigits(char * board) {
-//    printf("Checking sub grid...\n");
-    /*
-     Checks A subgrid referred to as the following:
-      0  1  2
-      ________
-    0|  |  |  |
-     |--|--|--|
-    1|  |  |  |
-     |--|--|--|
-    2|  |  |  |
-      --------
-     */
-    pthread_mutex_lock(&submutex);
-    int row, col;
-    col = (board - sudokuBoard) % 9;
-    row = (board - sudokuBoard) / 9;
-
+    // checks A subgrid for the correct numbers
     int *inSubG = (int *)malloc(length * sizeof(int));
     for (int i = 0; i < length; i++)
         *(inSubG + i) = 0;
     for (int j = 0; j < 3; j++) {
         for (int k = 0; k < 3; k++) {
             if (*(inSubG + *(board + j * length + k) - 1) == 1) {
-                pthread_mutex_unlock(&submutex);
                 return (void *) 0;
             }
             if (*(inSubG + *(board + j * length + k) - 1) == 0)
                 *(inSubG + *(board + j * length + k) - 1) = 1;
         }
     }
-    pthread_mutex_unlock(&submutex);
     return (void *) 1;
 
 }
