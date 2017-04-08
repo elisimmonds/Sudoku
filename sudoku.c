@@ -22,7 +22,6 @@ int main (int argc, char * argv[]) {
 
     FILE *ifp;
     char *mode = "r";
-    printf("%s\n", argv[1]);
     ifp = fopen(argv[1], mode);
     if (ifp == NULL) {
         fprintf(stderr, "Can't open input input file!\n");
@@ -56,13 +55,16 @@ int main (int argc, char * argv[]) {
     void * colresult[length];
     void * subresult[length];
 
-    for (int i = 0; i < length; i++) {
+    for (int i = 0; i < length; i++) { // create threads
         pthread_create(&rows[i], NULL, rowContainsDigits, (void *) (sudokuBoard + i * length));
-        pthread_join(rows[i], &rowresult[i]);
         pthread_create(&cols[i], NULL, colContainsDigits, (void *) (sudokuBoard + i));
-        pthread_join(cols[i], &colresult[i]);
         pthread_create(&subGrid[i], NULL, subGridContainsDigits,
                        (void *) (sudokuBoard + ((i / 3) * (3 * length)) + (i % 3) * 3 ));
+    }
+    
+    for (int i = 0; i < length; i++) { // wait and join threads
+        pthread_join(rows[i], &rowresult[i]);
+        pthread_join(cols[i], &colresult[i]);
         pthread_join(subGrid[i], &subresult[i]);
     }
 
@@ -134,7 +136,7 @@ void *rowContainsDigits(char * board) {
             *(inRow + *(board + j) - 1) = 1;
         }
     }
-    return (void *) 1;
+    return (void *) 1; // correct board
 }
 
 void *colContainsDigits(char * board) {
@@ -144,12 +146,12 @@ void *colContainsDigits(char * board) {
         *(inCol + i) = 0;
     for (int j = 0; j < length; j++) {
         if (*(inCol + *(board + j * length) - 1) == 1) {
-            return (void *) 0;
+            return (void *) 0;  // found bad val
         }
         if (*(inCol + *(board + j * length) - 1) == 0)
             *(inCol + *(board + j * length) - 1) = 1;
     }
-    return (void *) 1;
+    return (void *) 1; // correct board
 }
 
 void *subGridContainsDigits(char * board) {
@@ -160,7 +162,7 @@ void *subGridContainsDigits(char * board) {
     for (int j = 0; j < 3; j++) {
         for (int k = 0; k < 3; k++) {
             if (*(inSubG + *(board + j * length + k) - 1) == 1) {
-                return (void *) 0;
+                return (void *) 0;  // found bad val
             }
             if (*(inSubG + *(board + j * length + k) - 1) == 0)
                 *(inSubG + *(board + j * length + k) - 1) = 1;
@@ -172,6 +174,7 @@ void *subGridContainsDigits(char * board) {
 
 
 void printBoard (char * board) {
+    // prints a formatted sudoku board
     printf("\n");
     for (int i = 0; i < 9; i++) {
         for (int j = 0; j < 9; j++) {
