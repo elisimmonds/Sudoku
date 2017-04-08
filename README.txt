@@ -1,5 +1,6 @@
 to compile run gcc sudoku.c -lpthread
 to run type ./a.out filename.txt
+run my tests by running ./AutoTests
 
 This program will take in a board from the command line and check if it is valid.
 If the board is valid, it will print the board and tell you it is a valid input.
