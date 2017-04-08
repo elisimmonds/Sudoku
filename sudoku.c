@@ -15,14 +15,15 @@ void printBoard(char * board);
 void *rowContainsDigits(char * board);
 void *colContainsDigits(char * board);
 void *subGridContainsDigits(char * board);
-void readFile(char * fileName);
+void readFile();
 int checkForError (void * rowResult[length], void * colResult[length], void * subResult[length]);
 
 char * sudokuBoard;
 
 int main (int argc, char * argv[]) {
 
-    readFile(argv[1]);
+//    readFile(argv[1]);
+    readFile();
     printBoard(sudokuBoard);
 
     pthread_t rows[length];
@@ -103,28 +104,21 @@ void *subGridContainsDigits(char * board) {
 
 }
 
-void readFile (char * fileName) {
-    // initializes global board, reads values from file into 2d array.
+void readFile() {
+    // reads input from stdin, allocates sudokuBoard, reads values in.
     sudokuBoard = (char *)malloc(length * length * sizeof(char));
-    
-    FILE *ifp;
-    char *mode = "r";
-    ifp = fopen(fileName, mode);
-    if (ifp == NULL) {
-        fprintf(stderr, "Can't open input input file!\n");
-        exit(1);
-    }
-    char c = fgetc(ifp);
     int row = 0;
     int col = 0;
+    char c = getc(stdin);
+    
     while (c != EOF) {
         if (!isspace(c)) {
             *(sudokuBoard + row*length + col) = c;
             col++;
         }
-        c = fgetc(ifp);
+        c = getc(stdin);
         if (isspace(c)) {
-            c = fgetc(ifp);
+            c = getc(stdin);
         }
         if (col == 9) {
             row++;
