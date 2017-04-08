@@ -25,7 +25,6 @@ int main (int argc, char * argv[]) {
     readFile(argv[1]);
     printBoard(sudokuBoard);
 
-
     pthread_t rows[length];
     pthread_t cols[length];
     pthread_t subGrid[length];
@@ -49,12 +48,10 @@ int main (int argc, char * argv[]) {
 
     int error = checkForError(rowresult, colresult, subresult);
 
-
     if (error == 0)
         printf("The input is a valid Sudoku.\n");
     else
         printf("The input is not a valid Sudoku.\n");
-
 }
 
 void *rowContainsDigits(char * board) {

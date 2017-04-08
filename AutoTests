@@ -1,0 +1,13 @@
+echo ---------------
+echo Valid Tests
+echo ---------------
+gcc -w sudoku.c -lpthread
+./a.out Boards/validBoard1.txt
+./a.out Boards/validBoard2.txt
+
+
+echo ---------------
+echo invalid Tests
+echo ---------------
+./a.out Boards/invalidBoard2.txt
+./a.out Boards/invalidBoard2.txt
