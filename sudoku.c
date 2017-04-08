@@ -6,6 +6,7 @@
 #include <stdlib.h>
 #include <pthread.h>
 #include <ctype.h>
+#include <stdbool.h>
 
 #define length 9
 
@@ -14,42 +15,20 @@ void printBoard(char * board);
 void *rowContainsDigits(char * board);
 void *colContainsDigits(char * board);
 void *subGridContainsDigits(char * board);
+void readFile(char * fileName);
+int checkForError (void * rowResult[length], void * colResult[length], void * subResult[length]);
 
 char * sudokuBoard;
 
 int main (int argc, char * argv[]) {
-    sudokuBoard = (char *)malloc(length * length * sizeof(char));
 
-    FILE *ifp;
-    char *mode = "r";
-    ifp = fopen(argv[1], mode);
-    if (ifp == NULL) {
-        fprintf(stderr, "Can't open input input file!\n");
-        exit(1);
-    }
-    char c = fgetc(ifp);
-    int row = 0;
-    int col = 0;
-    while (c != EOF) {
-        if (!isspace(c)) {
-            *(sudokuBoard + row*length + col) = c;
-            col++;
-        }
-        c = fgetc(ifp);
-        if (isspace(c)) {
-            c = fgetc(ifp);
-        }
-        if (col == 9) {
-            row++;
-            col = 0;
-        }
-    }
+    readFile(argv[1]);
     printBoard(sudokuBoard);
 
 
-    pthread_t rows[9];
-    pthread_t cols[9];
-    pthread_t subGrid[9];
+    pthread_t rows[length];
+    pthread_t cols[length];
+    pthread_t subGrid[length];
 
     void * rowresult[length];
     void * colresult[length];
@@ -68,53 +47,8 @@ int main (int argc, char * argv[]) {
         pthread_join(subGrid[i], &subresult[i]);
     }
 
+    int error = checkForError(rowresult, colresult, subresult);
 
-    int error = 0;
-
-    for  (int i = 0; i < 9; i ++) {
-        if ((int) rowresult[i] == 0) {
-            printf("Row %d doesn't have the required values.\n", i + 1);
-            error = 1;
-        }
-        if ((int) colresult[i] == 0) {
-            printf("Column %d doesn't have the required values.\n", i + 1);
-            error = 1;
-        }
-        if ((int) subresult[i] == 0) {
-            char * location;
-            switch (i) {
-                case 0:
-                    location = "top left";
-                    break;
-                case 1:
-                    location = "top center";
-                    break;
-                case 2:
-                    location = "top right";
-                    break;
-                case 3:
-                    location = "left middle";
-                    break;
-                case 4:
-                    location = "center";
-                    break;
-                case 5:
-                    location = "right middle";
-                    break;
-                case 6:
-                    location = "bottom left";
-                    break;
-                case 7:
-                    location = "bottom center";
-                    break;
-                case 8:
-                    location = "bottom right";
-                    break;
-            }
-            printf("The %s subgrid doesn't have the required values.\n", location);
-            error = 1;
-        }
-    }
 
     if (error == 0)
         printf("The input is a valid Sudoku.\n");
@@ -168,8 +102,87 @@ void *subGridContainsDigits(char * board) {
                 *(inSubG + *(board + j * length + k) - 1) = 1;
         }
     }
-    return (void *) 1;
+    return (void *) 1;  // correct subgrids
 
+}
+
+void readFile (char * fileName) {
+    // initializes global board, reads values from file into 2d array.
+    sudokuBoard = (char *)malloc(length * length * sizeof(char));
+    
+    FILE *ifp;
+    char *mode = "r";
+    ifp = fopen(fileName, mode);
+    if (ifp == NULL) {
+        fprintf(stderr, "Can't open input input file!\n");
+        exit(1);
+    }
+    char c = fgetc(ifp);
+    int row = 0;
+    int col = 0;
+    while (c != EOF) {
+        if (!isspace(c)) {
+            *(sudokuBoard + row*length + col) = c;
+            col++;
+        }
+        c = fgetc(ifp);
+        if (isspace(c)) {
+            c = fgetc(ifp);
+        }
+        if (col == 9) {
+            row++;
+            col = 0;
+        }
+    }
+}
+
+int checkForError (void * rowresult[length], void * colresult[length], void * subresult[length]) {
+    int error = 0;
+    for  (int i = 0; i < length; i ++) {
+        if ((int) rowresult[i] == 0) {
+            printf("Row %d doesn't have the required values.\n", i + 1);
+            error = 1;
+        }
+        if ((int) colresult[i] == 0) {
+            printf("Column %d doesn't have the required values.\n", i + 1);
+            error = 1;
+        }
+        if ((int) subresult[i] == 0) {
+            char * location;
+            switch (i) {
+                case 0:
+                    location = "top left";
+                    break;
+                case 1:
+                    location = "top center";
+                    break;
+                case 2:
+                    location = "top right";
+                    break;
+                case 3:
+                    location = "left middle";
+                    break;
+                case 4:
+                    location = "center";
+                    break;
+                case 5:
+                    location = "right middle";
+                    break;
+                case 6:
+                    location = "bottom left";
+                    break;
+                case 7:
+                    location = "bottom center";
+                    break;
+                case 8:
+                    location = "bottom right";
+                    break;
+            }
+            printf("The %s subgrid doesn't have the required values.\n", location);
+            error = 1;
+        }
+    }
+    return error;
 }
 
 
