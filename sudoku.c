@@ -15,14 +15,15 @@ void printBoard(char * board);
 void *rowContainsDigits(char * board);
 void *colContainsDigits(char * board);
 void *subGridContainsDigits(char * board);
-void readFile();
+char * readFile();
 int checkForError (void * rowResult[length], void * colResult[length], void * subResult[length]);
 
-char * sudokuBoard;
+//char * sudokuBoard;
 
 int main (int argc, char * argv[]) {
+    
+    char * sudokuBoard = readFile();
 
-//    readFile(argv[1]);
     readFile();
     printBoard(sudokuBoard);
 
@@ -33,7 +34,7 @@ int main (int argc, char * argv[]) {
     void * rowresult[length];
     void * colresult[length];
     void * subresult[length];
-
+    
     for (int i = 0; i < length; i++) { // create threads
         pthread_create(&rows[i], NULL, rowContainsDigits, (void *) (sudokuBoard + i * length));
         pthread_create(&cols[i], NULL, colContainsDigits, (void *) (sudokuBoard + i));
@@ -104,9 +105,10 @@ void *subGridContainsDigits(char * board) {
 
 }
 
-void readFile() {
+char * readFile() {
     // reads input from stdin, allocates sudokuBoard, reads values in.
-    sudokuBoard = (char *)malloc(length * length * sizeof(char));
+//    char * sudokuBoard = (char *)malloc(length * length * sizeof(char));
+    char * sudokuBoard = (char *)malloc(length * length * sizeof(char));
     int row = 0;
     int col = 0;
     char c = getc(stdin);
@@ -125,6 +127,7 @@ void readFile() {
             col = 0;
         }
     }
+    return sudokuBoard;
 }
 
 int checkForError (void * rowresult[length], void * colresult[length], void * subresult[length]) {
